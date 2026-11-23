@@ -1,0 +1,8 @@
+<ul class="nav plan-tabs mb-4">
+  <li class="nav-item"><a class="nav-link {% if active == 'overview' %}active{% endif %}" href="{% url 'planner:overview' %}"><i class="bi bi-bullseye me-1"></i>Overview</a></li>
+  <li class="nav-item"><a class="nav-link {% if active == 'resumes' %}active{% endif %}" href="{% url 'planner:resumes' %}"><i class="bi bi-file-earmark-person me-1"></i>Resumes</a></li>
+  <li class="nav-item"><a class="nav-link {% if active == 'networking' %}active{% endif %}" href="{% url 'planner:networking' %}"><i class="bi bi-diagram-3 me-1"></i>Networking</a></li>
+  <li class="nav-item"><a class="nav-link {% if active == 'followups' %}active{% endif %}" href="{% url 'planner:followups' %}"><i class="bi bi-bell me-1"></i>Follow-ups{% if due_followups %}<span class="badge-count">{{ due_followups }}</span>{% endif %}</a></li>
+  <li class="nav-item"><a class="nav-link {% if active == 'report' %}active{% endif %}" href="{% url 'planner:report' %}"><i class="bi bi-calendar-week me-1"></i>Weekly report</a></li>
+  <li class="nav-item"><a class="nav-link {% if active == 'goals' %}active{% endif %}" href="{% url 'planner:goals' %}"><i class="bi bi-sliders me-1"></i>Targets</a></li>
+</ul>

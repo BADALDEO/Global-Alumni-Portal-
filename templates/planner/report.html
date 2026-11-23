@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Weekly report{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Weekly report</h1><p>{{ current.start|date:"d M" }} to {{ current.end|date:"d M Y" }} &middot; how this week is going.</p></div></div>
+{% include "planner/_tabs.html" %}
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-indigo"><i class="bi bi-send"></i></span><div><div class="label">Applied this week</div><div class="value">{{ current.applications }}<span class="fs-6 text-muted fw-semibold"> / {{ current.target }}</span></div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-sky"><i class="bi bi-diagram-3"></i></span><div><div class="label">Networking actions</div><div class="value">{{ current.networking }}{% if progress.net_enabled %}<span class="fs-6 text-muted fw-semibold"> / {{ current.net_target }}</span>{% endif %}</div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-amber"><i class="bi bi-hourglass-split"></i></span><div><div class="label">Pending applications</div><div class="value">{{ stats.pending }}</div></div></div></div>
+  <div class="col-md-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-red"><i class="bi bi-bell"></i></span><div><div class="label">Follow-ups due</div><div class="value">{{ stats.followups_due }}</div></div></div></div>
+</div>
+
+<div class="card-soft mb-4"><div class="card-pad">
+  <div class="d-flex justify-content-between small fw-semibold mb-1"><span>Weekly application target</span><span>{{ current.pct }}%</span></div>
+  <div class="progress progress-thin mb-2"><div class="progress-bar" style="width: {{ current.pct }}%"></div></div>
+  <div class="small text-muted">{% if current.pct >= 100 %}Weekly target reached. Keep the momentum going!{% else %}{{ current.applications }} of {{ current.target }} applications done this week.{% endif %}{% if streak %} &middot; <strong>{{ streak }}-day streak</strong>{% endif %}</div>
+</div></div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-6"><div class="card-soft h-100"><div class="card-head"><h5>This week, day by day</h5></div><div class="card-pad"><div class="chart-box"><canvas id="weekChart"></canvas></div></div></div></div>
+  <div class="col-lg-6"><div class="card-soft h-100"><div class="card-head"><h5>Last 14 days</h5></div><div class="card-pad"><div class="chart-box"><canvas id="dailyChart"></canvas></div></div></div></div>
+</div>
+
+<div class="card-soft overflow-hidden">
+  <div class="card-head"><h5>Last 8 weeks</h5></div>
+  <div class="table-responsive"><table class="table table-modern align-middle">
+    <thead><tr><th>Week</th><th>Applications</th><th style="min-width:150px">Target</th><th>Networking</th><th>Interviews</th><th>Selected</th><th>Rejected</th></tr></thead>
+    <tbody>
+    {% for w in rows %}
+      <tr class="{% if w.current %}row-current{% endif %}">
+        <td class="text-nowrap fw-semibold">{{ w.start|date:"d M" }} - {{ w.end|date:"d M" }}{% if w.current %} <span class="tag tag-brand mb-0 ms-1">This week</span>{% endif %}</td>
+        <td>{{ w.applications }} <span class="text-muted small">/ {{ w.target }}</span></td>
+        <td><div class="d-flex align-items-center gap-2"><div class="progress progress-thin flex-grow-1"><div class="progress-bar" style="width: {{ w.pct }}%"></div></div><span class="small fw-semibold">{{ w.pct }}%</span></div></td>
+        <td>{{ w.networking }}</td>
+        <td>{{ w.interviews }}</td>
+        <td>{{ w.selected }}</td>
+        <td>{{ w.rejected }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+
+{{ chart|json_script:"plan-chart-data" }}
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/plan_charts.js' %}"></script>
+{% endblock %}

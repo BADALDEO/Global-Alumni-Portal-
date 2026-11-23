@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="card-soft bg-brand border-0 p-4 p-lg-5 mb-4 position-relative overflow-hidden">
+  <div class="row align-items-center">
+    <div class="col-lg-8">
+      <h2 class="fw-bold mb-1">Hello, {{ user.first_name|default:user.username }} 👋</h2>
+      <p class="mb-3 opacity-75">
+        {% if user.is_student %}Keep applying, keep tracking, and ask alumni for a referral when you spot the right role.
+        {% elif user.is_alumni %}Help the next batch: review referral requests and share openings from your company.
+        {% else %}Post openings and review applicants from the alumni community.{% endif %}
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'jobs:list' %}" class="btn btn-light fw-semibold text-primary"><i class="bi bi-search me-1"></i> Browse jobs</a>
+        {% if user.is_student or user.is_alumni %}<a href="{% url 'tracker:create' %}" class="btn btn-outline-light fw-semibold"><i class="bi bi-plus-lg me-1"></i> Track an application</a>{% endif %}
+        {% if user.can_post_jobs %}<a href="{% url 'jobs:create' %}" class="btn btn-outline-light fw-semibold"><i class="bi bi-megaphone me-1"></i> Post a job</a>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if summary %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-indigo"><i class="bi bi-send"></i></span><div><div class="label">Applications</div><div class="value">{{ summary.total }}</div></div></div></div>
+  <div class="col-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-sky"><i class="bi bi-chat-dots"></i></span><div><div class="label">Interviews</div><div class="value">{{ summary.interview }}</div></div></div></div>
+  <div class="col-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-amber"><i class="bi bi-hourglass-split"></i></span><div><div class="label">Pending</div><div class="value">{{ summary.pending }}</div></div></div></div>
+  <div class="col-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-green"><i class="bi bi-trophy"></i></span><div><div class="label">Selected</div><div class="value">{{ summary.selected }}</div></div></div></div>
+</div>
+{% endif %}
+
+{% if progress %}
+<div class="card-soft mb-4"><div class="card-pad d-flex flex-wrap align-items-center gap-4">
+  <div class="flex-grow-1" style="min-width:240px">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <h6 class="mb-0"><i class="bi bi-bullseye text-primary me-1"></i> Today's application target</h6>
+      <span class="fw-bold">{{ progress.apps }} / {{ progress.app_target }}</span>
+    </div>
+    <div class="progress progress-thin mb-2"><div class="progress-bar" style="width: {{ progress.app_pct }}%"></div></div>
+    <div class="small text-muted">{% if progress.app_done %}Target reached. Great work today!{% else %}{{ progress.app_remaining }} more application{{ progress.app_remaining|pluralize }} to hit today's target.{% endif %}</div>
+  </div>
+  <a href="{% url 'planner:overview' %}" class="btn btn-soft">Open job search plan <i class="bi bi-arrow-right ms-1"></i></a>
+</div></div>
+{% endif %}
+
+{% if user.can_post_jobs %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-violet"><i class="bi bi-megaphone"></i></span><div><div class="label">Jobs posted</div><div class="value">{{ jobs_posted }}</div></div></div></div>
+  <div class="col-6 col-xl-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-green"><i class="bi bi-people"></i></span><div><div class="label">Total applicants</div><div class="value">{{ total_applicants }}</div></div></div></div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+  {% if user.is_student or user.is_alumni %}
+  <div class="col-lg-7">
+    <div class="card-soft h-100">
+      <div class="card-head"><h5>Recent applications</h5><a href="{% url 'tracker:list' %}" class="small fw-semibold">View all</a></div>
+      {% for app in recent_apps %}
+        <div class="d-flex align-items-center gap-3 px-4 py-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <span class="company-logo">{{ app.company_name|slice:":1"|upper }}</span>
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ app.job_title }}</div>
+            <div class="text-muted small">{{ app.company_name }} &middot; {{ app.get_platform_display }} &middot; {{ app.applied_date|date:"d M" }}</div>
+          </div>
+          {% include "includes/status_pill.html" with status=app.status label=app.get_status_display %}
+        </div>
+      {% empty %}
+        {% include "includes/empty_state.html" with icon="bi-journal-plus" title="No applications yet" text="Add the jobs you have applied to and track them here." cta_url="/applications/add/" cta_label="Add your first application" %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-lg-5">
+    {% if user.is_student %}
+    <div class="card-soft h-100">
+      <div class="card-head"><h5>My referral requests</h5><a href="{% url 'referrals:list' %}" class="small fw-semibold">View all</a></div>
+      {% for r in my_referrals %}
+        <div class="d-flex align-items-center gap-3 px-4 py-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <span class="avatar avatar-sm">{{ r.alumni.first_name|default:r.alumni.username|slice:":1" }}</span>
+          <div class="flex-grow-1">
+            <div class="fw-semibold small">{{ r.job_title }} &middot; {{ r.company_name }}</div>
+            <div class="text-muted small">to {{ r.alumni.display_name }}</div>
+          </div>
+          {% include "includes/status_pill.html" with status=r.status label=r.get_status_display %}
+        </div>
+      {% empty %}
+        {% include "includes/empty_state.html" with icon="bi-people" title="No referral requests" text="Find an alumnus at your target company and ask for a referral." cta_url="/referrals/alumni/" cta_label="Find alumni" %}
+      {% endfor %}
+    </div>
+    {% elif user.is_alumni %}
+    <div class="card-soft h-100">
+      <div class="card-head"><h5>Pending referral requests</h5><a href="{% url 'referrals:list' %}" class="small fw-semibold">View all</a></div>
+      {% for r in incoming_referrals %}
+        <a href="{% url 'referrals:detail' r.pk %}" class="d-flex align-items-center gap-3 px-4 py-3 text-reset {% if not forloop.last %}border-bottom{% endif %}">
+          <span class="avatar avatar-sm">{{ r.student.first_name|default:r.student.username|slice:":1" }}</span>
+          <div class="flex-grow-1">
+            <div class="fw-semibold small">{{ r.student.display_name }}</div>
+            <div class="text-muted small">{{ r.job_title }} &middot; {{ r.company_name }}</div>
+          </div>
+          <i class="bi bi-chevron-right text-muted"></i>
+        </a>
+      {% empty %}
+        {% include "includes/empty_state.html" with icon="bi-check2-circle" title="All caught up" text="No pending referral requests right now." %}
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if user.can_post_jobs %}
+  <div class="col-12">
+    <div class="card-soft">
+      <div class="card-head"><h5>Latest applicants to your jobs</h5><a href="{% url 'jobs:my_posted' %}" class="small fw-semibold">Manage jobs</a></div>
+      {% for a in recent_applicants %}
+        <div class="d-flex align-items-center gap-3 px-4 py-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <span class="avatar avatar-sm">{{ a.student.first_name|default:a.student.username|slice:":1" }}</span>
+          <div class="flex-grow-1">
+            <div class="fw-semibold small">{{ a.student.display_name }}</div>
+            <div class="text-muted small">applied for {{ a.job.title }} &middot; {{ a.applied_at|date:"d M" }}</div>
+          </div>
+          <a href="{% url 'jobs:applicants' a.job.pk %}" class="btn btn-soft btn-sm">Review</a>
+        </div>
+      {% empty %}
+        {% include "includes/empty_state.html" with icon="bi-inboxes" title="No applicants yet" text="Applicants to your jobs will show up here." %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Find Alumni{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Find Alumni</h1><p>Explore profiles, connect on LinkedIn, GitHub or LeetCode, ask for mentorship and referrals.</p></div></div>
+
+<form method="get" class="card-soft filter-bar">
+  <div class="row g-2 align-items-center">
+    <div class="col-lg-7"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Try a company like TCS, a designation, or a name..."></div>
+    <div class="col-lg-3">
+      <div class="form-check form-switch ms-lg-2">
+        <input class="form-check-input" type="checkbox" role="switch" id="mentor" name="mentor" value="1" {% if mentors_only %}checked{% endif %}>
+        <label class="form-check-label fw-semibold" for="mentor">Open to mentoring</label>
+      </div>
+    </div>
+    <div class="col-lg-2 d-grid"><button class="btn btn-primary"><i class="bi bi-search me-1"></i> Search</button></div>
+  </div>
+</form>
+
+<div class="row g-3">
+  {% for a in page_obj %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card-soft job-card">
+      <div class="d-flex gap-3 mb-3">
+        <span class="avatar" style="width:52px;height:52px;font-size:1.2rem">{{ a.first_name|default:a.username|slice:":1" }}</span>
+        <div>
+          <h6 class="mb-0">{{ a.display_name }}</h6>
+          <div class="text-muted small">{{ a.designation|default:"Alumni" }}{% if a.company_name %} at <strong>{{ a.company_name }}</strong>{% endif %}</div>
+        </div>
+      </div>
+      {% if a.bio %}<p class="small text-muted mb-3">{{ a.bio|truncatechars:110 }}</p>{% endif %}
+      <div class="mb-3">
+        {% if a.graduation_year %}<span class="tag"><i class="bi bi-mortarboard me-1"></i>Class of {{ a.graduation_year }}</span>{% endif %}
+        {% if a.open_to_mentorship %}<span class="tag tag-amber"><i class="bi bi-stars me-1"></i>Open to mentoring</span>{% endif %}
+        {% if a.referrals_given %}<span class="tag tag-brand"><i class="bi bi-patch-check me-1"></i>{{ a.referrals_given }} referral{{ a.referrals_given|pluralize }} given</span>{% endif %}
+      </div>
+      <div class="d-flex gap-2 mb-2">
+        {% if a.linkedin_url %}<a href="{{ a.linkedin_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-icon" title="LinkedIn profile"><i class="bi bi-linkedin"></i></a>{% endif %}
+        {% if a.github_url %}<a href="{{ a.github_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-icon" title="GitHub profile"><i class="bi bi-github"></i></a>{% endif %}
+        {% if a.leetcode_url %}<a href="{{ a.leetcode_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-icon" title="LeetCode profile"><i class="bi bi-code-slash"></i></a>{% endif %}
+        <a href="{% url 'planner:networking_create' %}?alumni={{ a.pk }}" class="btn btn-soft btn-icon ms-auto" title="Log a networking activity with {{ a.first_name|default:a.username }}"><i class="bi bi-journal-plus"></i></a>
+      </div>
+      <div class="mt-auto">
+        <a href="{% url 'referrals:request' %}?alumni={{ a.pk }}" class="btn btn-gradient btn-sm w-100"><i class="bi bi-people me-1"></i> Request referral</a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><div class="card-soft">{% include "includes/empty_state.html" with icon="bi-person-lines-fill" title="No alumni found" text="Try a different search or switch off the mentoring filter." %}</div></div>
+  {% endfor %}
+</div>
+{% include "includes/pagination.html" %}
+{% endblock %}

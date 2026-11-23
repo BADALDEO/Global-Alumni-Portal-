@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My Job Search Plan{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>My Job Search Plan</h1><p>Your whole job search in one place: applications, resumes, networking and follow-ups.</p></div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{% url 'tracker:create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-1"></i> Log an application</a>
+    <a href="{% url 'planner:networking_create' %}" class="btn btn-outline-primary"><i class="bi bi-diagram-3 me-1"></i> Log networking</a>
+  </div>
+</div>
+{% include "planner/_tabs.html" %}
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-7">
+    <div class="card-soft h-100">
+      <div class="card-head"><h5><i class="bi bi-bullseye text-primary me-1"></i> Today's targets</h5><a href="{% url 'planner:goals' %}" class="small fw-semibold">Edit targets</a></div>
+      <div class="card-pad">
+        <div class="d-flex flex-wrap align-items-center gap-4">
+          <div class="text-center">
+            <div class="ring {% if progress.app_done %}done{% endif %}" style="--pct: {{ progress.app_pct }}"><div class="ring-inner"><div class="ring-num">{{ progress.apps }}<span>/{{ progress.app_target }}</span></div><div class="ring-label">applied</div></div></div>
+          </div>
+          {% if progress.net_enabled %}
+          <div class="text-center">
+            <div class="ring ring-sky {% if progress.net_done %}done{% endif %}" style="--pct: {{ progress.net_pct }}"><div class="ring-inner"><div class="ring-num">{{ progress.network }}<span>/{{ progress.net_target }}</span></div><div class="ring-label">networking</div></div></div>
+          </div>
+          {% endif %}
+          <div class="flex-grow-1" style="min-width:210px">
+            {% if streak %}<div class="streak-pill mb-2"><i class="bi bi-fire"></i> {{ streak }}-day streak</div>{% endif %}
+            <p class="mb-2 fw-semibold">
+              {% if progress.app_done %}Application target reached. Great work!{% else %}{{ progress.app_remaining }} more application{{ progress.app_remaining|pluralize }} to reach today's target.{% endif %}
+            </p>
+            {% if progress.net_enabled %}
+            <p class="mb-3 text-muted small">{% if progress.net_done %}Networking target reached too.{% else %}{{ progress.net_remaining }} more networking action{{ progress.net_remaining|pluralize }} to go.{% endif %}</p>
+            {% endif %}
+            <div class="d-flex justify-content-between small fw-semibold mb-1"><span>This week</span><span>{{ stats.week }} / {{ week_target }}</span></div>
+            <div class="progress progress-thin"><div class="progress-bar" style="width: {{ week_pct }}%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card-soft h-100">
+      <div class="card-head"><h5><i class="bi bi-bell text-warning me-1"></i> Follow-ups</h5><a href="{% url 'planner:followups' %}" class="small fw-semibold">Open</a></div>
+      <div class="card-pad">
+        <div class="d-flex gap-3 mb-3">
+          <div class="mini-stat card-soft py-3"><div class="n {% if stats.followups_due %}text-danger{% endif %}">{{ stats.followups_due }}</div><div class="l">Due now</div></div>
+          <div class="mini-stat card-soft py-3"><div class="n">{{ stats.followups_upcoming }}</div><div class="l">Next 14 days</div></div>
+          <div class="mini-stat card-soft py-3"><div class="n">{{ stats.pending }}</div><div class="l">Pending apps</div></div>
+        </div>
+        <p class="small text-muted mb-0">A reminder is set 7 days after every application. Follow up politely with the recruiter or ask an alumnus for a referral.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6 col-xl-3"><div class="card-soft card-pad h-100">
+    <div class="small text-muted fw-semibold text-uppercase mb-3"><i class="bi bi-send me-1"></i> Applications</div>
+    <div class="d-flex"><div class="mini-stat"><div class="n">{{ stats.total_applied }}</div><div class="l">Total applied</div></div><div class="mini-stat"><div class="n">{{ stats.today }}</div><div class="l">Today</div></div><div class="mini-stat"><div class="n">{{ stats.week }}</div><div class="l">This week</div></div></div>
+  </div></div>
+  <div class="col-md-6 col-xl-3"><div class="card-soft card-pad h-100">
+    <div class="small text-muted fw-semibold text-uppercase mb-3"><i class="bi bi-people me-1"></i> Network</div>
+    <div class="d-flex"><div class="mini-stat"><div class="n">{{ stats.alumni_connections }}</div><div class="l">Alumni connections</div></div><div class="mini-stat"><div class="n">{{ stats.referral_requests }}</div><div class="l">Referral requests</div></div></div>
+  </div></div>
+  <div class="col-md-6 col-xl-4"><div class="card-soft card-pad h-100">
+    <div class="small text-muted fw-semibold text-uppercase mb-3"><i class="bi bi-trophy me-1"></i> Outcomes</div>
+    <div class="d-flex"><div class="mini-stat"><div class="n">{{ stats.interviews }}</div><div class="l">Interviews</div></div><div class="mini-stat"><div class="n text-success">{{ stats.selected }}</div><div class="l">Selected</div></div><div class="mini-stat"><div class="n text-danger">{{ stats.rejected }}</div><div class="l">Rejected</div></div></div>
+  </div></div>
+  <div class="col-md-6 col-xl-2"><div class="card-soft card-pad h-100">
+    <div class="small text-muted fw-semibold text-uppercase mb-3"><i class="bi bi-bell me-1"></i> Follow-ups</div>
+    <div class="mini-stat"><div class="n {% if stats.followups_due %}text-danger{% endif %}">{{ stats.followups_due }}</div><div class="l">Pending</div></div>
+  </div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8"><div class="card-soft h-100"><div class="card-head"><h5>Last 14 days</h5><span class="small text-muted">Applications vs your daily target</span></div><div class="card-pad"><div class="chart-box"><canvas id="dailyChart"></canvas></div></div></div></div>
+  <div class="col-lg-4"><div class="card-soft h-100"><div class="card-head"><h5>This week</h5></div><div class="card-pad"><div class="chart-box"><canvas id="weekChart"></canvas></div></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="card-soft h-100 overflow-hidden">
+      <div class="card-head"><h5>Follow-ups due</h5><a href="{% url 'planner:followups' %}" class="small fw-semibold">View all</a></div>
+      {% for app in followups %}{% include "planner/_followup_item.html" %}
+      {% empty %}{% include "includes/empty_state.html" with icon="bi-check2-circle" title="Nothing due" text="You are on top of your follow-ups." %}{% endfor %}
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card-soft h-100 overflow-hidden">
+      <div class="card-head"><h5>Recent networking</h5><a href="{% url 'planner:networking' %}" class="small fw-semibold">View all</a></div>
+      {% for n in recent_networking %}
+        <div class="d-flex align-items-center gap-3 px-4 py-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <span class="avatar avatar-sm">{{ n.contact_name|slice:":1" }}</span>
+          <div class="flex-grow-1">
+            <div class="fw-semibold small">{{ n.contact_name }}{% if n.is_alumni %} <span class="tag tag-brand mb-0 ms-1">Alumni</span>{% endif %}</div>
+            <div class="text-muted small">{{ n.get_activity_display }} &middot; {{ n.get_platform_display }} &middot; {{ n.date|date:"d M" }}</div>
+          </div>
+        </div>
+      {% empty %}{% include "includes/empty_state.html" with icon="bi-diagram-3" title="No networking yet" text="Log the people you reach out to on LinkedIn, GitHub, LeetCode or college." cta_url="/plan/networking/add/" cta_label="Log your first one" %}{% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="card-soft overflow-hidden mb-2">
+  <div class="card-head"><h5>Resume performance</h5><a href="{% url 'planner:resumes' %}" class="small fw-semibold">Resume library</a></div>
+  {% if resumes %}
+  <div class="table-responsive"><table class="table table-modern align-middle">
+    <thead><tr><th>Resume</th><th>Used in</th><th>Interviews</th><th>Selected</th><th>Rejected</th></tr></thead>
+    <tbody>
+    {% for r in resumes %}
+      <tr><td class="fw-semibold">{{ r.label }}{% if r.is_default %} <span class="tag tag-brand mb-0 ms-1">Default</span>{% endif %}</td><td>{{ r.app_count }} application{{ r.app_count|pluralize }}</td><td>{{ r.interview_count }}</td><td>{{ r.selected_count }}</td><td>{{ r.rejected_count }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}{% include "includes/empty_state.html" with icon="bi-file-earmark-person" title="No resume versions yet" text="Save each version of your resume and see which one gets more interviews." cta_url="/plan/resumes/add/" cta_label="Add a resume version" %}{% endif %}
+</div>
+
+{{ chart|json_script:"plan-chart-data" }}
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/plan_charts.js' %}"></script>
+{% endblock %}

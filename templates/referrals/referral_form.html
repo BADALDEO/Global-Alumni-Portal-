@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Request a Referral{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Request a Referral</h1><p>A clear, polite message with the role details gets the best response.</p></div></div>
+<div class="row g-4">
+  <div class="col-xl-8">
+    <div class="card-soft"><div class="card-pad">
+      <form method="post" enctype="multipart/form-data">{% csrf_token %}
+        {% if form.non_field_errors %}<div class="alert alert-danger">{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
+        <div class="row g-3">
+          <div class="col-12">{% include "includes/field.html" with field=form.alumni %}</div>
+          <div class="col-md-6">{% include "includes/field.html" with field=form.job %}</div>
+          <div class="col-md-6">{% include "includes/field.html" with field=form.external_application %}</div>
+          <div class="col-md-6">{% include "includes/field.html" with field=form.company_name %}</div>
+          <div class="col-md-6">{% include "includes/field.html" with field=form.job_title %}</div>
+          <div class="col-12">{% include "includes/field.html" with field=form.job_link %}</div>
+          <div class="col-12">{% include "includes/field.html" with field=form.message %}</div>
+          <div class="col-12">{% include "includes/field.html" with field=form.resume %}</div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+          <button class="btn btn-gradient"><i class="bi bi-send me-1"></i> Send request</button>
+          <a href="{% url 'referrals:list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div></div>
+  </div>
+
+  <div class="col-xl-4">
+    {% if suggestions %}
+    <div class="card-soft mb-3"><div class="card-pad">
+      <h6 class="mb-3"><i class="bi bi-lightbulb text-warning me-1"></i> Alumni at this company</h6>
+      {% for s in suggestions %}
+        <button type="button" class="btn btn-soft w-100 text-start d-flex align-items-center gap-2 mb-2" data-pick-alumni="{{ s.pk }}">
+          <span class="avatar avatar-sm">{{ s.first_name|default:s.username|slice:":1" }}</span>
+          <span><span class="fw-semibold d-block">{{ s.display_name }}</span><span class="small text-muted">{{ s.designation|default:s.company_name }}</span></span>
+        </button>
+      {% endfor %}
+    </div></div>
+    {% endif %}
+    <div class="card-soft"><div class="card-pad">
+      <h6 class="mb-3">Tips for a great request</h6>
+      <ul class="small text-muted ps-3 mb-0">
+        <li class="mb-2">Say who you are and where you study.</li>
+        <li class="mb-2">Mention the exact role and share the posting link.</li>
+        <li class="mb-2">Highlight 2 or 3 relevant skills or projects.</li>
+        <li>Attach an up-to-date resume.</li>
+      </ul>
+    </div></div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  document.querySelectorAll('[data-pick-alumni]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var select = document.querySelector('select[name="alumni"]');
+      if (select) { select.value = btn.getAttribute('data-pick-alumni'); select.focus(); }
+    });
+  });
+</script>
+{% endblock %}

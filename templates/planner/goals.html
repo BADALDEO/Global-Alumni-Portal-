@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Targets{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Your targets</h1><p>Set a daily goal you can keep up with. Consistency beats bursts.</p></div></div>
+{% include "planner/_tabs.html" %}
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card-soft"><div class="card-pad">
+      <form method="post">{% csrf_token %}
+        {% include "includes/form_fields.html" %}
+        <button class="btn btn-gradient"><i class="bi bi-check2 me-1"></i> Save targets</button>
+        <a href="{% url 'planner:overview' %}" class="btn btn-outline-secondary">Cancel</a>
+      </form>
+    </div></div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card-soft"><div class="card-pad">
+      <h6 class="mb-3">What your targets mean</h6>
+      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Daily applications</span><strong>{{ goal.daily_application_target }}</strong></div>
+      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Weekly applications</span><strong>{{ goal.weekly_application_target }}</strong></div>
+      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Daily networking</span><strong>{% if goal.daily_networking_target %}{{ goal.daily_networking_target }}{% else %}Off{% endif %}</strong></div>
+      <div class="d-flex justify-content-between"><span class="text-muted">Weekly networking</span><strong>{% if goal.daily_networking_target %}{{ goal.weekly_networking_target }}{% else %}Off{% endif %}</strong></div>
+      <hr>
+      <p class="small text-muted mb-0">Applications are counted from the date you applied in <a href="{% url 'tracker:list' %}">My Job Applications</a>, including those you make on this portal. Networking counts every activity you log.</p>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}My Posted Jobs{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>My Posted Jobs</h1><p>Manage your openings and review applicants.</p></div>
+  <a href="{% url 'jobs:create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-1"></i> Post a job</a>
+</div>
+{% if jobs %}
+<div class="card-soft overflow-hidden"><div class="table-responsive">
+<table class="table table-modern align-middle">
+  <thead><tr><th>Job</th><th>Type</th><th>Deadline</th><th>Status</th><th>Applicants</th><th class="text-end">Actions</th></tr></thead>
+  <tbody>
+  {% for job in jobs %}
+    <tr>
+      <td><div class="d-flex align-items-center gap-3"><span class="company-logo">{{ job.company_name|slice:":1"|upper }}</span><div><a href="{{ job.get_absolute_url }}" class="fw-semibold text-reset">{{ job.title }}</a><div class="text-muted small">{{ job.company_name }}</div></div></div></td>
+      <td><span class="tag mb-0">{{ job.get_job_type_display }}</span></td>
+      <td class="text-nowrap">{{ job.apply_deadline|date:"d M Y"|default:"-" }}</td>
+      <td>{% if job.is_open %}<span class="pill pill-open">Open</span>{% else %}<span class="pill pill-closed">Closed</span>{% endif %}</td>
+      <td><a href="{% url 'jobs:applicants' job.pk %}" class="btn btn-soft btn-sm">{{ job.applicant_count }} <i class="bi bi-arrow-right-short"></i></a></td>
+      <td class="text-end text-nowrap">
+        <a href="{% url 'jobs:edit' job.pk %}" class="btn btn-soft btn-icon" title="Edit"><i class="bi bi-pencil"></i></a>
+        <a href="{% url 'jobs:delete' job.pk %}" class="btn btn-soft btn-icon text-danger" title="Delete"><i class="bi bi-trash"></i></a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+{% else %}
+<div class="card-soft">{% include "includes/empty_state.html" with icon="bi-megaphone" title="You have not posted any jobs" text="Share openings from your company with students and fellow alumni." cta_url="/jobs/post/" cta_label="Post your first job" %}</div>
+{% endif %}
+{% endblock %}

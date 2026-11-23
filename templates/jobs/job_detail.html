@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block content %}
+<a href="{% url 'jobs:list' %}" class="small fw-semibold"><i class="bi bi-arrow-left"></i> Back to jobs</a>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card-soft"><div class="card-pad p-lg-4">
+      <div class="d-flex gap-3 align-items-start">
+        <span class="company-logo" style="width:64px;height:64px;flex-basis:64px;font-size:1.6rem">{{ job.company_name|slice:":1"|upper }}</span>
+        <div>
+          <div class="mb-1">
+            <span class="tag {% if job.job_type == 'internship' %}tag-amber{% else %}tag-brand{% endif %}">{{ job.get_job_type_display }}</span>
+            {% if job.is_open %}<span class="pill pill-open">Open</span>{% else %}<span class="pill pill-closed">Closed</span>{% endif %}
+          </div>
+          <h2 class="mb-1">{{ job.title }}</h2>
+          <div class="text-muted fs-6">{{ job.company_name }}</div>
+        </div>
+      </div>
+      <hr class="my-4">
+      <h6 class="mb-2">About the role</h6>
+      <p style="white-space: pre-line;">{{ job.description }}</p>
+      {% if job.skills_list %}
+        <h6 class="mt-4 mb-2">Skills required</h6>
+        {% for skill in job.skills_list %}<span class="tag">{{ skill }}</span>{% endfor %}
+      {% endif %}
+    </div></div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card-soft mb-3"><div class="card-pad">
+      {% if can_apply %}
+        <a href="{% url 'jobs:apply' job.pk %}" class="btn btn-gradient btn-lg w-100 mb-2"><i class="bi bi-send me-1"></i> Apply now</a>
+      {% elif already_applied %}
+        <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-primary w-100 mb-2"><i class="bi bi-check2-circle me-1"></i> Applied, view status</a>
+      {% endif %}
+      {% if user.is_student %}
+        <a href="{% url 'referrals:request' %}?job={{ job.pk }}{% if job.posted_by.is_alumni %}&amp;alumni={{ job.posted_by.pk }}{% endif %}" class="btn btn-soft w-100"><i class="bi bi-people me-1"></i> Ask alumni for referral</a>
+      {% endif %}
+      {% if is_owner %}
+        <a href="{% url 'jobs:applicants' job.pk %}" class="btn btn-primary w-100 mb-2"><i class="bi bi-people me-1"></i> View applicants</a>
+        <div class="d-flex gap-2">
+          <a href="{% url 'jobs:edit' job.pk %}" class="btn btn-outline-secondary flex-fill">Edit</a>
+          <a href="{% url 'jobs:delete' job.pk %}" class="btn btn-outline-danger flex-fill">Delete</a>
+        </div>
+      {% endif %}
+      {% if not can_apply and not already_applied and not user.is_student and not is_owner %}
+        <div class="text-muted small text-center">Only students can apply to jobs.</div>
+      {% endif %}
+    </div></div>
+
+    <div class="card-soft mb-3"><div class="card-pad">
+      <h6 class="mb-3">Overview</h6>
+      <div class="job-meta flex-column gap-2">
+        {% if job.location %}<span><i class="bi bi-geo-alt"></i>{{ job.location }}</span>{% endif %}
+        {% if job.salary_or_stipend %}<span><i class="bi bi-cash-stack"></i>{{ job.salary_or_stipend }}</span>{% endif %}
+        {% if job.apply_deadline %}<span><i class="bi bi-calendar-event"></i>Apply by {{ job.apply_deadline|date:"d M Y" }}</span>{% endif %}
+        <span><i class="bi bi-clock"></i>Posted {{ job.created_at|timesince }} ago</span>
+      </div>
+    </div></div>
+
+    <div class="card-soft"><div class="card-pad">
+      <h6 class="mb-3">Posted by</h6>
+      <div class="d-flex align-items-center gap-3">
+        <span class="avatar">{{ job.posted_by.first_name|default:job.posted_by.username|slice:":1" }}</span>
+        <div>
+          <div class="fw-semibold">{{ job.posted_by.display_name }}</div>
+          <div class="text-muted small">{{ job.posted_by.get_role_display }}{% if job.posted_by.company_name %} &middot; {{ job.posted_by.company_name }}{% endif %}</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

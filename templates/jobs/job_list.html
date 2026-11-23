@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Jobs &amp; Internships{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Jobs &amp; Internships</h1><p>{{ total }} open opportunit{{ total|pluralize:"y,ies" }} from alumni and partner companies.</p></div>
+  {% if user.can_post_jobs %}<a href="{% url 'jobs:create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-1"></i> Post a job</a>{% endif %}
+</div>
+
+<form method="get" class="card-soft filter-bar">
+  <div class="row g-2">
+    <div class="col-lg-5"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search title, company or skill..."></div>
+    <div class="col-md-4 col-lg-3">
+      <select name="type" class="form-select">
+        <option value="">All types</option>
+        {% for value, label in job_types %}<option value="{{ value }}" {% if value == job_type %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 col-lg-2"><input type="text" name="location" value="{{ location }}" class="form-control" placeholder="Location"></div>
+    <div class="col-md-4 col-lg-2 d-grid"><button class="btn btn-primary"><i class="bi bi-search me-1"></i> Search</button></div>
+  </div>
+</form>
+
+<div class="row g-3">
+  {% for job in page_obj %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card-soft job-card">
+      <div class="d-flex gap-3 mb-3">
+        <span class="company-logo">{{ job.company_name|slice:":1"|upper }}</span>
+        <div class="min-w-0">
+          <h6 class="title mb-0"><a href="{{ job.get_absolute_url }}" class="stretched-link">{{ job.title }}</a></h6>
+          <div class="text-muted small">{{ job.company_name }}</div>
+        </div>
+      </div>
+      <div class="mb-2">
+        <span class="tag {% if job.job_type == 'internship' %}tag-amber{% else %}tag-brand{% endif %}">{{ job.get_job_type_display }}</span>
+        {% for skill in job.skills_list|slice:":3" %}<span class="tag">{{ skill }}</span>{% endfor %}
+      </div>
+      <div class="job-meta mb-3">
+        {% if job.location %}<span><i class="bi bi-geo-alt"></i>{{ job.location }}</span>{% endif %}
+        {% if job.salary_or_stipend %}<span><i class="bi bi-cash-stack"></i>{{ job.salary_or_stipend }}</span>{% endif %}
+      </div>
+      <div class="mt-auto d-flex justify-content-between align-items-center small text-muted">
+        <span><i class="bi bi-clock me-1"></i>{{ job.created_at|timesince }} ago</span>
+        {% if job.id in applied_ids %}<span class="pill pill-selected">Applied</span>
+        {% elif job.apply_deadline %}<span>Apply by {{ job.apply_deadline|date:"d M" }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><div class="card-soft">{% include "includes/empty_state.html" with icon="bi-search" title="No jobs found" text="Try a different keyword or clear the filters." %}</div></div>
+  {% endfor %}
+</div>
+{% include "includes/pagination.html" %}
+{% endblock %}

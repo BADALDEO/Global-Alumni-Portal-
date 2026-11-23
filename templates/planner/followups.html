@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Follow-ups{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Follow-ups</h1><p>Applications that need a nudge. Following up is often what gets you noticed.</p></div></div>
+{% include "planner/_tabs.html" %}
+
+<div class="card-soft overflow-hidden mb-4">
+  <div class="card-head"><h5>Due now <span class="tag tag-amber mb-0 ms-1">{{ due|length }}</span></h5></div>
+  {% for app in due %}{% include "planner/_followup_item.html" %}
+  {% empty %}{% include "includes/empty_state.html" with icon="bi-check2-circle" title="You are all caught up" text="No follow-ups are due right now." %}{% endfor %}
+</div>
+
+<div class="card-soft overflow-hidden mb-4">
+  <div class="card-head"><h5>Coming up in the next 14 days <span class="tag mb-0 ms-1">{{ upcoming|length }}</span></h5></div>
+  {% for app in upcoming %}{% include "planner/_followup_item.html" %}
+  {% empty %}<div class="px-4 py-4 text-muted">Nothing scheduled.</div>{% endfor %}
+</div>
+
+{% if recently_done %}
+<div class="card-soft overflow-hidden">
+  <div class="card-head"><h5>Recently followed up</h5></div>
+  {% for app in recently_done %}
+  <div class="d-flex align-items-center gap-3 px-4 py-3 {% if not forloop.last %}border-bottom{% endif %}">
+    <i class="bi bi-check-circle-fill text-success"></i>
+    <div class="flex-grow-1"><span class="fw-semibold">{{ app.company_name }}</span> <span class="text-muted small">&middot; {{ app.job_title }}</span></div>
+    {% include "includes/status_pill.html" with status=app.status label=app.get_status_display %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

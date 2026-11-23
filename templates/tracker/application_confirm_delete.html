@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Remove application{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-6">
+  <div class="card-soft"><div class="card-pad text-center">
+    <div class="empty-state p-0">
+      <div class="icon tone-red"><i class="bi bi-trash"></i></div>
+      <h4>Remove this application?</h4>
+      <p class="text-muted">"{{ app.job_title }}" at {{ app.company_name }} will be removed from your tracker.</p>
+      <form method="post">{% csrf_token %}
+        <button class="btn btn-danger">Yes, remove</button>
+        <a href="{% url 'tracker:list' %}" class="btn btn-outline-secondary">Cancel</a>
+      </form>
+    </div>
+  </div></div>
+</div></div>
+{% endblock %}

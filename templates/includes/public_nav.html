@@ -1,0 +1,17 @@
+<nav class="public-nav">
+  <div class="container inner">
+    <a class="brand p-0" href="{% url 'home' %}">
+      <span class="brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
+      <span>Alumni<span class="brand-accent">Portal</span></span>
+    </a>
+    <div class="links">
+      <a href="{% url 'home' %}#features">Features</a>
+      <a href="{% url 'home' %}#how">How it works</a>
+    </div>
+    <div class="right">
+      <button class="icon-btn" data-theme-toggle aria-label="Toggle theme"><i class="bi bi-moon-stars theme-moon"></i><i class="bi bi-brightness-high theme-sun"></i></button>
+      <a href="{% url 'login' %}" class="btn btn-outline-primary d-none d-sm-inline-block">Log in</a>
+      <a href="{% url 'signup' %}" class="btn btn-gradient">Get started</a>
+    </div>
+  </div>
+</nav>

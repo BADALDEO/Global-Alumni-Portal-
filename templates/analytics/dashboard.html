@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Career Analytics{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Career Analytics</h1><p>Understand how your job search is going and where it works best.</p></div>
+  <a href="{% url 'tracker:create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-1"></i> Add application</a>
+</div>
+
+{% if not has_data %}
+<div class="card-soft">{% include "includes/empty_state.html" with icon="bi-graph-up-arrow" title="No data to analyse yet" text="Add a few applications to My Job Applications and your charts will appear here." cta_url="/applications/add/" cta_label="Add an application" %}</div>
+{% else %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl"><div class="card-soft stat-tile"><span class="icon-wrap tone-indigo"><i class="bi bi-send"></i></span><div><div class="label">Total applications</div><div class="value">{{ stats.totals.total }}</div></div></div></div>
+  <div class="col-6 col-xl"><div class="card-soft stat-tile"><span class="icon-wrap tone-sky"><i class="bi bi-chat-dots"></i></span><div><div class="label">Interviews</div><div class="value">{{ stats.totals.interview }}</div></div></div></div>
+  <div class="col-6 col-xl"><div class="card-soft stat-tile"><span class="icon-wrap tone-red"><i class="bi bi-x-circle"></i></span><div><div class="label">Rejected</div><div class="value">{{ stats.totals.rejected }}</div></div></div></div>
+  <div class="col-6 col-xl"><div class="card-soft stat-tile"><span class="icon-wrap tone-amber"><i class="bi bi-hourglass-split"></i></span><div><div class="label">Pending</div><div class="value">{{ stats.totals.pending }}</div></div></div></div>
+  <div class="col-12 col-xl"><div class="card-soft stat-tile"><span class="icon-wrap tone-green"><i class="bi bi-trophy"></i></span><div><div class="label">Selected</div><div class="value">{{ stats.totals.selected }}</div></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-5">
+    <div class="card-soft h-100"><div class="card-head"><h5>Application status</h5></div>
+      <div class="card-pad"><div class="chart-box"><canvas id="statusChart"></canvas></div></div></div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card-soft h-100"><div class="card-head"><h5>Applications by platform</h5></div>
+      <div class="card-pad"><div class="chart-box"><canvas id="platformChart"></canvas></div></div></div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card-soft h-100"><div class="card-head"><h5>Applications over the last 6 months</h5></div>
+      <div class="card-pad"><div class="chart-box"><canvas id="monthlyChart"></canvas></div></div></div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card-soft h-100"><div class="card-head"><h5>Your rates</h5></div>
+      <div class="card-pad">
+        <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Reached interview</span><span>{{ stats.rates.interview }}%</span></div><div class="progress progress-thin"><div class="progress-bar" style="width: {{ stats.rates.interview }}%"></div></div></div>
+        <div class="mb-3"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Got a response</span><span>{{ stats.rates.response }}%</span></div><div class="progress progress-thin"><div class="progress-bar" style="width: {{ stats.rates.response }}%"></div></div></div>
+        <div class="mb-1"><div class="d-flex justify-content-between small fw-semibold mb-1"><span>Selected</span><span>{{ stats.rates.success }}%</span></div><div class="progress progress-thin"><div class="progress-bar" style="width: {{ stats.rates.success }}%"></div></div></div>
+        <p class="small text-muted mt-3 mb-0">Based on the current status of your {{ stats.totals.total }} application{{ stats.totals.total|pluralize }}.</p>
+      </div></div>
+  </div>
+</div>
+
+<div class="card-soft mb-4 overflow-hidden">
+  <div class="card-head"><h5>Platform-wise statistics</h5></div>
+  <div class="table-responsive">
+  <table class="table table-modern align-middle">
+    <thead><tr><th>Platform</th><th>Applications</th><th>Interviews</th><th>Selected</th><th>Rejected</th><th>Pending</th><th style="min-width:160px">Interview rate</th></tr></thead>
+    <tbody>
+    {% for p in stats.platforms %}
+      <tr>
+        <td class="fw-semibold">{{ p.label }}</td>
+        <td>{{ p.count }} <span class="text-muted small">({{ p.share }}%)</span></td>
+        <td>{{ p.interviews }}</td>
+        <td>{{ p.selected }}</td>
+        <td>{{ p.rejected }}</td>
+        <td>{{ p.pending }}</td>
+        <td><div class="d-flex align-items-center gap-2"><div class="progress progress-thin flex-grow-1"><div class="progress-bar" style="width: {{ p.interview_rate }}%"></div></div><span class="small fw-semibold">{{ p.interview_rate }}%</span></div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card-soft h-100"><div class="card-head"><h5><i class="bi bi-lightbulb text-warning me-1"></i> Insights</h5></div>
+      <div class="card-pad">
+        <ul class="list-unstyled mb-0">
+          {% for line in stats.insights %}<li class="d-flex gap-2 mb-2"><i class="bi bi-check-circle-fill text-primary mt-1"></i><span>{{ line }}</span></li>{% endfor %}
+        </ul>
+      </div></div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card-soft h-100"><div class="card-head"><h5>{% if user.is_alumni %}Referral requests received{% else %}Your referral requests{% endif %}</h5><a href="{% url 'referrals:list' %}" class="small fw-semibold">Open</a></div>
+      <div class="card-pad">
+        <div class="row text-center g-2">
+          <div class="col-3"><div class="fs-4 fw-bold">{{ stats.referrals.total }}</div><div class="small text-muted">Total</div></div>
+          <div class="col-3"><div class="fs-4 fw-bold">{{ stats.referrals.pending }}</div><div class="small text-muted">Pending</div></div>
+          <div class="col-3"><div class="fs-4 fw-bold">{{ stats.referrals.accepted }}</div><div class="small text-muted">Accepted</div></div>
+          <div class="col-3"><div class="fs-4 fw-bold">{{ stats.referrals.rejected }}</div><div class="small text-muted">Declined</div></div>
+        </div>
+      </div></div>
+  </div>
+</div>
+
+{{ chart|json_script:"chart-data" }}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if has_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  var data = JSON.parse(document.getElementById('chart-data').textContent);
+  var charts = [];
+
+  function themeColors() {
+    var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    return { text: dark ? '#9aa3b8' : '#6b7280', grid: dark ? 'rgba(255,255,255,.07)' : 'rgba(16,24,40,.06)', card: dark ? '#151826' : '#ffffff' };
+  }
+  function applyTheme() {
+    var c = themeColors();
+    Chart.defaults.color = c.text;
+    Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+    charts.forEach(function (ch) {
+      if (ch.options.scales) {
+        Object.keys(ch.options.scales).forEach(function (k) { if (ch.options.scales[k].grid) ch.options.scales[k].grid.color = c.grid; });
+      }
+      if (ch.config.type === 'doughnut') { ch.data.datasets[0].borderColor = c.card; }
+      ch.update();
+    });
+  }
+
+  var c = themeColors();
+  Chart.defaults.color = c.text;
+  Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+  var brand = '#5b5bf0';
+
+  charts.push(new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: { labels: data.status.labels, datasets: [{ data: data.status.data, backgroundColor: data.status.colors, borderColor: c.card, borderWidth: 3 }] },
+    options: { maintainAspectRatio: false, cutout: '66%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } } } }
+  }));
+
+  charts.push(new Chart(document.getElementById('platformChart'), {
+    type: 'bar',
+    data: { labels: data.platform.labels, datasets: [{ label: 'Applications', data: data.platform.data, backgroundColor: brand, borderRadius: 8, maxBarThickness: 46 }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: c.grid } } } }
+  }));
+
+  charts.push(new Chart(document.getElementById('monthlyChart'), {
+    type: 'line',
+    data: { labels: data.monthly.labels, datasets: [{ label: 'Applications', data: data.monthly.data, borderColor: brand, backgroundColor: 'rgba(91,91,240,.14)', fill: true, tension: .35, pointRadius: 4, pointBackgroundColor: brand }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: c.grid } } } }
+  }));
+
+  window.addEventListener('themechange', applyTheme);
+})();
+</script>
+{% endif %}
+{% endblock %}

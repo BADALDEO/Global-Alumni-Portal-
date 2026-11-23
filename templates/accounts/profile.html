@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>My Profile</h1><p>Keep your details up to date. Alumni profiles are visible to students.</p></div></div>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card-soft text-center pb-4">
+      <div class="profile-cover"></div>
+      <span class="avatar avatar-lg profile-avatar">{{ user.first_name|default:user.username|slice:":1" }}</span>
+      <h5 class="mt-2 mb-0">{{ user.display_name }}</h5>
+      <div class="text-muted small">@{{ user.username }}</div>
+      <div class="mt-2"><span class="tag tag-brand">{{ user.get_role_display }}</span></div>
+      {% if user.designation or user.company_name %}<div class="mt-2 small">{{ user.designation }}{% if user.designation and user.company_name %} at {% endif %}<strong>{{ user.company_name }}</strong></div>{% endif %}
+      {% if user.graduation_year %}<div class="text-muted small mt-1"><i class="bi bi-mortarboard"></i> Class of {{ user.graduation_year }}</div>{% endif %}
+      {% if user.open_to_mentorship %}<div class="mt-2"><span class="tag tag-amber"><i class="bi bi-stars me-1"></i>Open to mentoring</span></div>{% endif %}
+      <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+        {% if user.linkedin_url %}<a href="{{ user.linkedin_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-sm"><i class="bi bi-linkedin me-1"></i> LinkedIn</a>{% endif %}
+        {% if user.github_url %}<a href="{{ user.github_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-sm"><i class="bi bi-github me-1"></i> GitHub</a>{% endif %}
+        {% if user.leetcode_url %}<a href="{{ user.leetcode_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-sm"><i class="bi bi-code-slash me-1"></i> LeetCode</a>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card-soft"><div class="card-pad">
+      <h5 class="mb-3">Edit details</h5>
+      <form method="post">{% csrf_token %}
+        {% include "includes/form_fields.html" %}
+        <button class="btn btn-gradient"><i class="bi bi-check2 me-1"></i> Save changes</button>
+      </form>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

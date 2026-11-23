@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}My Job Applications{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>My Job Applications</h1><p>Every application you have made, on any platform, in one place.</p></div>
+  <a href="{% url 'tracker:create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-1"></i> Add application</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg"><div class="card-soft stat-tile"><span class="icon-wrap tone-indigo"><i class="bi bi-send"></i></span><div><div class="label">Total</div><div class="value">{{ summary.total }}</div></div></div></div>
+  <div class="col-6 col-lg"><div class="card-soft stat-tile"><span class="icon-wrap tone-amber"><i class="bi bi-hourglass-split"></i></span><div><div class="label">Pending</div><div class="value">{{ summary.pending }}</div></div></div></div>
+  <div class="col-6 col-lg"><div class="card-soft stat-tile"><span class="icon-wrap tone-sky"><i class="bi bi-chat-dots"></i></span><div><div class="label">Interviews</div><div class="value">{{ summary.interview }}</div></div></div></div>
+  <div class="col-6 col-lg"><div class="card-soft stat-tile"><span class="icon-wrap tone-green"><i class="bi bi-trophy"></i></span><div><div class="label">Selected</div><div class="value">{{ summary.selected }}</div></div></div></div>
+  <div class="col-12 col-lg"><div class="card-soft stat-tile"><span class="icon-wrap tone-red"><i class="bi bi-x-circle"></i></span><div><div class="label">Rejected</div><div class="value">{{ summary.rejected }}</div></div></div></div>
+</div>
+
+{% if has_any %}
+<form method="get" class="card-soft filter-bar">
+  <div class="row g-2">
+    <div class="col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search company or job title..."></div>
+    <div class="col-md-3">
+      <select name="status" class="form-select">
+        <option value="">All statuses</option>
+        {% for value, label in status_choices %}<option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="platform" class="form-select">
+        <option value="">All platforms</option>
+        {% for value, label in platform_choices %}<option value="{{ value }}" {% if value == platform %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-grid"><button class="btn btn-soft"><i class="bi bi-funnel me-1"></i> Filter</button></div>
+  </div>
+</form>
+
+<div class="card-soft overflow-hidden"><div class="table-responsive">
+<table class="table table-modern align-middle">
+  <thead><tr><th>Company / Role</th><th>Platform</th><th>Applied</th><th>Status</th><th>Resume</th><th class="text-end">Actions</th></tr></thead>
+  <tbody>
+  {% for app in page_obj %}
+    <tr>
+      <td>
+        <div class="d-flex align-items-center gap-3">
+          <span class="company-logo">{{ app.company_name|slice:":1"|upper }}</span>
+          <div>
+            <div class="fw-semibold">{{ app.job_title }}</div>
+            <div class="text-muted small">{{ app.company_name }}</div>
+            {% if app.notes %}<div class="small text-muted fst-italic">{{ app.notes|truncatechars:50 }}</div>{% endif %}
+          </div>
+        </div>
+      </td>
+      <td>
+        <span class="tag mb-0">{{ app.get_platform_display }}</span>
+        {% if app.job_link %}<a href="{{ app.job_link }}" target="_blank" rel="noopener" class="ms-1" title="Open job posting"><i class="bi bi-box-arrow-up-right"></i></a>{% endif %}
+      </td>
+      <td class="text-nowrap">{{ app.applied_date|date:"d M Y" }}</td>
+      <td>
+        <form method="post" action="{% url 'tracker:quick_status' app.pk %}">{% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <select name="status" class="form-select form-select-sm status-select" onchange="this.form.submit()" aria-label="Status">
+            {% for value, label in status_choices %}<option value="{{ value }}" {% if value == app.status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </form>
+        {% if app.follow_up_state %}<div class="small mt-1 follow-{{ app.follow_up_state }}"><i class="bi bi-bell"></i> Follow up {{ app.follow_up_date|date:"d M" }}</div>{% endif %}
+      </td>
+      <td>{% if app.resume %}<a href="{% url 'tracker:resume' app.pk %}" target="_blank" class="btn btn-soft btn-sm"><i class="bi bi-file-earmark-text"></i> {% if app.resume_version %}{{ app.resume_version.label|truncatechars:18 }}{% else %}View{% endif %}</a>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+      <td class="text-end text-nowrap">
+        {% if user.is_student %}<a href="{% url 'referrals:request' %}?application={{ app.pk }}" class="btn btn-soft btn-icon" data-bs-toggle="tooltip" title="Ask an alumnus for a referral"><i class="bi bi-people"></i></a>{% endif %}
+        <a href="{% url 'tracker:edit' app.pk %}" class="btn btn-soft btn-icon" data-bs-toggle="tooltip" title="Edit"><i class="bi bi-pencil"></i></a>
+        <a href="{% url 'tracker:delete' app.pk %}" class="btn btn-soft btn-icon text-danger" data-bs-toggle="tooltip" title="Delete"><i class="bi bi-trash"></i></a>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">{% include "includes/empty_state.html" with icon="bi-search" title="No matching applications" text="Try changing your search or filters." %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+{% include "includes/pagination.html" %}
+
+{% else %}
+<div class="card-soft">
+  {% include "includes/empty_state.html" with icon="bi-journal-plus" title="Start tracking your applications" text="Add jobs you applied to on LinkedIn, Naukri, Indeed or a company website. Applications you make on this portal are added automatically." cta_url="/applications/add/" cta_label="Add your first application" %}
+</div>
+{% endif %}
+{% endblock %}

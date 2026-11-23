@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Applied via Portal{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Applied via Portal</h1><p>Jobs you applied to on this portal. These also appear in My Job Applications.</p></div>
+  <a href="{% url 'jobs:list' %}" class="btn btn-gradient"><i class="bi bi-search me-1"></i> Browse jobs</a></div>
+{% if applications %}
+<div class="card-soft overflow-hidden"><div class="table-responsive">
+<table class="table table-modern align-middle">
+  <thead><tr><th>Job</th><th>Applied on</th><th>Status</th><th>Resume</th><th class="text-end">Referral</th></tr></thead>
+  <tbody>
+  {% for app in applications %}
+    <tr>
+      <td><div class="d-flex align-items-center gap-3"><span class="company-logo">{{ app.job.company_name|slice:":1"|upper }}</span><div><a href="{{ app.job.get_absolute_url }}" class="fw-semibold text-reset">{{ app.job.title }}</a><div class="text-muted small">{{ app.job.company_name }}</div></div></div></td>
+      <td class="text-nowrap">{{ app.applied_at|date:"d M Y" }}</td>
+      <td>{% include "includes/status_pill.html" with status=app.status label=app.get_status_display %}</td>
+      <td><a href="{% url 'jobs:resume' app.pk %}" target="_blank" class="btn btn-soft btn-sm"><i class="bi bi-file-earmark-text"></i> View</a></td>
+      <td class="text-end"><a href="{% url 'referrals:request' %}?job={{ app.job.pk }}" class="btn btn-soft btn-icon" title="Ask alumni for a referral"><i class="bi bi-people"></i></a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+{% else %}
+<div class="card-soft">{% include "includes/empty_state.html" with icon="bi-send" title="No applications yet" text="Browse openings and apply in a few clicks." cta_url="/jobs/" cta_label="Browse jobs" %}</div>
+{% endif %}
+{% endblock %}

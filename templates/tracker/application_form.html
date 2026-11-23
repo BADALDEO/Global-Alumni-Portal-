@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ heading }}</h1><p>Keep a clean record of where and how you applied.</p></div></div>
+<div class="row justify-content-center"><div class="col-xl-8">
+  <div class="card-soft"><div class="card-pad">
+    {% if app.portal_application_id %}<div class="alert alert-info"><i class="bi bi-info-circle me-1"></i> This application was made on the portal. Its status also updates when the recruiter changes it.</div>{% endif %}
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="row g-3">
+        <div class="col-md-6">{% include "includes/field.html" with field=form.company_name %}</div>
+        <div class="col-md-6">{% include "includes/field.html" with field=form.job_title %}</div>
+        <div class="col-md-4">{% include "includes/field.html" with field=form.platform %}</div>
+        <div class="col-md-4">{% include "includes/field.html" with field=form.applied_date %}</div>
+        <div class="col-md-4">{% include "includes/field.html" with field=form.status %}</div>
+        <div class="col-12">{% include "includes/field.html" with field=form.job_link %}</div>
+        <div class="col-md-6">{% include "includes/field.html" with field=form.resume_version %}</div>
+        <div class="col-md-6">{% include "includes/field.html" with field=form.resume %}</div>
+        <div class="col-md-6">{% include "includes/field.html" with field=form.follow_up_date %}</div>
+        <div class="col-12">{% include "includes/field.html" with field=form.notes %}</div>
+      </div>
+      <div class="d-flex gap-2 mt-2">
+        <button class="btn btn-gradient"><i class="bi bi-check2 me-1"></i> Save</button>
+        <a href="{% url 'tracker:list' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div></div>
+</div></div>
+{% endblock %}

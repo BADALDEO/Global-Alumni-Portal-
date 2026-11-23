@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Delete job{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-6">
+  <div class="card-soft"><div class="card-pad">
+    <div class="empty-state p-0">
+      <div class="icon tone-red"><i class="bi bi-trash"></i></div>
+      <h4>Delete this job?</h4>
+      <p class="text-muted">"{{ job.title }}" and all its applications will be removed permanently.</p>
+      <form method="post">{% csrf_token %}
+        <button class="btn btn-danger">Yes, delete</button>
+        <a href="{{ job.get_absolute_url }}" class="btn btn-outline-secondary">Cancel</a>
+      </form>
+    </div>
+  </div></div>
+</div></div>
+{% endblock %}

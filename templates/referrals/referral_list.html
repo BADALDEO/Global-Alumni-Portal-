@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{% if user.is_alumni %}Referral Requests{% else %}My Referrals{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% if user.is_alumni %}Referral Requests{% else %}My Referrals{% endif %}</h1>
+    <p>{% if user.is_alumni %}Students asking for your help. Review each request and respond.{% else %}Track every referral you have asked for and the alumni response.{% endif %}</p>
+  </div>
+  {% if user.is_student %}<a href="{% url 'referrals:directory' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-1"></i> New request</a>{% endif %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-indigo"><i class="bi bi-people"></i></span><div><div class="label">Total</div><div class="value">{{ counts.total }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-amber"><i class="bi bi-hourglass-split"></i></span><div><div class="label">Pending</div><div class="value">{{ counts.pending }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-green"><i class="bi bi-patch-check"></i></span><div><div class="label">Accepted</div><div class="value">{{ counts.accepted }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card-soft stat-tile"><span class="icon-wrap tone-red"><i class="bi bi-x-circle"></i></span><div><div class="label">Declined</div><div class="value">{{ counts.rejected }}</div></div></div></div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <a href="{% url 'referrals:list' %}" class="btn btn-sm {% if not status %}btn-primary{% else %}btn-soft{% endif %}">All</a>
+  {% for value, label in status_choices %}
+    <a href="?status={{ value }}" class="btn btn-sm {% if status == value %}btn-primary{% else %}btn-soft{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="card-soft overflow-hidden">
+  {% for r in page_obj %}
+    {% if user.is_alumni %}{% with other=r.student %}
+    <a href="{% url 'referrals:detail' r.pk %}" class="d-flex align-items-center gap-3 px-4 py-3 text-reset {% if not forloop.last %}border-bottom{% endif %}">
+      <span class="avatar">{{ other.first_name|default:other.username|slice:":1" }}</span>
+      <div class="flex-grow-1 min-w-0">
+        <div class="fw-semibold">{{ other.display_name }}</div>
+        <div class="text-muted small">{{ r.job_title }} at {{ r.company_name }} &middot; {{ r.created_at|timesince }} ago</div>
+      </div>
+      {% include "includes/status_pill.html" with status=r.status label=r.get_status_display %}
+      <i class="bi bi-chevron-right text-muted"></i>
+    </a>
+    {% endwith %}{% else %}{% with other=r.alumni %}
+    <a href="{% url 'referrals:detail' r.pk %}" class="d-flex align-items-center gap-3 px-4 py-3 text-reset {% if not forloop.last %}border-bottom{% endif %}">
+      <span class="avatar">{{ other.first_name|default:other.username|slice:":1" }}</span>
+      <div class="flex-grow-1 min-w-0">
+        <div class="fw-semibold">{{ r.job_title }} <span class="text-muted fw-normal">at {{ r.company_name }}</span></div>
+        <div class="text-muted small">Asked {{ other.display_name }} &middot; {{ r.created_at|timesince }} ago</div>
+      </div>
+      {% include "includes/status_pill.html" with status=r.status label=r.get_status_display %}
+      <i class="bi bi-chevron-right text-muted"></i>
+    </a>
+    {% endwith %}{% endif %}
+  {% empty %}
+    {% if user.is_alumni %}
+      {% include "includes/empty_state.html" with icon="bi-inbox" title="No referral requests yet" text="When a student asks you for a referral, it will show up here." %}
+    {% else %}
+      {% include "includes/empty_state.html" with icon="bi-people" title="No referral requests yet" text="Find an alumnus at your target company and send your first request." cta_url="/referrals/alumni/" cta_label="Find alumni" %}
+    {% endif %}
+  {% endfor %}
+</div>
+{% include "includes/pagination.html" %}
+{% endblock %}

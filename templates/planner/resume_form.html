@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ heading }}</h1><p>Give each version a clear name so you can recognise it later.</p></div></div>
+{% include "planner/_tabs.html" %}
+<div class="row justify-content-center"><div class="col-xl-8">
+  <div class="card-soft"><div class="card-pad">
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="row g-3">
+        <div class="col-md-8">{% include "includes/field.html" with field=form.title %}</div>
+        <div class="col-md-4">{% include "includes/field.html" with field=form.version %}</div>
+        <div class="col-12">{% include "includes/field.html" with field=form.target_role %}</div>
+        <div class="col-12">{% include "includes/field.html" with field=form.file %}</div>
+        <div class="col-12">{% include "includes/field.html" with field=form.notes %}</div>
+        <div class="col-12">{% include "includes/field.html" with field=form.is_default %}</div>
+      </div>
+      <div class="d-flex gap-2 mt-2">
+        <button class="btn btn-gradient"><i class="bi bi-check2 me-1"></i> Save</button>
+        <a href="{% url 'planner:resumes' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div></div>
+</div></div>
+{% endblock %}

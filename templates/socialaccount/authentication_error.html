@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block title %}Google sign-in failed{% endblock %}
+{% block content %}{% include "includes/auth_message.html" with icon="bi-exclamation-octagon" title="Google sign-in failed" text="Something went wrong while signing in with Google. Please try again, or log in with your username." %}{% endblock %}
+{% block public %}{% include "includes/public_nav.html" %}{% include "includes/auth_message.html" with icon="bi-exclamation-octagon" title="Google sign-in failed" text="Something went wrong while signing in with Google. Please try again, or log in with your username." %}{% endblock %}

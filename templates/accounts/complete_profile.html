@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Finish setting up{% endblock %}
+{% block public %}
+<nav class="public-nav"><div class="container inner">
+  <a class="brand p-0" href="{% url 'complete_profile' %}"><span class="brand-mark"><i class="bi bi-mortarboard-fill"></i></span><span>Alumni<span class="brand-accent">Portal</span></span></a>
+  <div class="right">
+    <button class="icon-btn" data-theme-toggle aria-label="Toggle theme"><i class="bi bi-moon-stars theme-moon"></i><i class="bi bi-brightness-high theme-sun"></i></button>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn-outline-primary">Log out</button></form>
+  </div>
+</div></nav>
+
+<div class="auth-form" style="min-height: calc(100vh - 70px)">
+  <div class="card-soft auth-card" style="max-width:600px">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <span class="avatar avatar-lg" style="width:56px;height:56px;font-size:1.3rem">{{ user.first_name|default:user.username|slice:":1" }}</span>
+      <div><h3 class="mb-0">Welcome, {{ user.first_name|default:user.username }}!</h3><div class="text-muted small">{{ user.email }}</div></div>
+    </div>
+    <p class="text-muted mb-4">You signed in with Google. Tell us how you will use the portal. You can change other details later in your profile.</p>
+
+    <form method="post">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
+      <label class="form-label">I am a</label>
+      <div class="row g-2 mb-3">
+        {% for value, label in form.role.field.choices %}
+        <div class="col-4">
+          <label class="role-card">
+            <input type="radio" name="role" value="{{ value }}" {% if form.role.value == value %}checked{% endif %}>
+            <div class="box">
+              <i class="bi {% if value == 'student' %}bi-mortarboard{% elif value == 'alumni' %}bi-person-workspace{% else %}bi-building{% endif %}"></i>
+              <div class="t">{{ label }}</div>
+              <div class="d">{% if value == 'student' %}Find jobs &amp; referrals{% elif value == 'alumni' %}Post jobs &amp; refer{% else %}Hire talent{% endif %}</div>
+            </div>
+          </label>
+        </div>
+        {% endfor %}
+      </div>
+      {% for e in form.role.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+
+      <div class="row g-3" id="proFields">
+        <div class="col-md-7">{% include "includes/field.html" with field=form.company_name %}</div>
+        <div class="col-md-5">{% include "includes/field.html" with field=form.graduation_year %}</div>
+      </div>
+
+      <button class="btn btn-gradient btn-lg w-100 mt-1">Continue</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/role_fields.js' %}"></script>{% endblock %}

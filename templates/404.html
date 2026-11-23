@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block title %}Page not found{% endblock %}
+{% block content %}{% include "includes/error_card.html" with code="404" icon="bi-compass" title="Page not found" text="The page you are looking for does not exist or has been moved." %}{% endblock %}
+{% block public %}{% include "includes/public_nav.html" %}{% include "includes/error_card.html" with code="404" icon="bi-compass" title="Page not found" text="The page you are looking for does not exist or has been moved." %}{% endblock %}

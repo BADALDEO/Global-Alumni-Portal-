@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block title %}Sign-in cancelled{% endblock %}
+{% block content %}{% include "includes/auth_message.html" with icon="bi-x-circle" title="Sign-in cancelled" text="You cancelled the Google sign-in. You can try again whenever you are ready." %}{% endblock %}
+{% block public %}{% include "includes/public_nav.html" %}{% include "includes/auth_message.html" with icon="bi-x-circle" title="Sign-in cancelled" text="You cancelled the Google sign-in. You can try again whenever you are ready." %}{% endblock %}

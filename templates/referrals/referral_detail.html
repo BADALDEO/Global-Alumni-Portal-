@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Referral: {{ r.job_title }}{% endblock %}
+{% block content %}
+<a href="{% url 'referrals:list' %}" class="small fw-semibold"><i class="bi bi-arrow-left"></i> Back to referrals</a>
+
+<div class="page-header mt-2">
+  <div>
+    <h1>{{ r.job_title }}</h1>
+    <p>{{ r.company_name }}{% if r.job_link %} &middot; <a href="{{ r.job_link }}" target="_blank" rel="noopener">View posting <i class="bi bi-box-arrow-up-right small"></i></a>{% endif %}</p>
+  </div>
+  {% include "includes/status_pill.html" with status=r.status label=r.get_status_display %}
+</div>
+
+<div class="card-soft mb-4"><div class="card-pad py-4">
+  <ul class="stepper">
+    <li class="done"><span class="dot"><i class="bi bi-send-check"></i></span><div class="fw-semibold">Requested</div><div class="small">{{ r.created_at|date:"d M, H:i" }}</div></li>
+    <li class="{% if r.status == 'accepted' or r.status == 'rejected' %}done{% endif %}"><span class="dot"><i class="bi bi-eye"></i></span><div class="fw-semibold">Reviewed</div><div class="small">{% if r.responded_at and r.status != 'withdrawn' %}{{ r.responded_at|date:"d M, H:i" }}{% else %}Waiting{% endif %}</div></li>
+    <li class="{% if r.status == 'accepted' %}done{% elif r.status == 'rejected' %}fail{% endif %}"><span class="dot"><i class="bi {% if r.status == 'accepted' %}bi-check-lg{% elif r.status == 'rejected' %}bi-x-lg{% else %}bi-flag{% endif %}"></i></span>
+      <div class="fw-semibold">{% if r.status == 'accepted' %}Accepted{% elif r.status == 'rejected' %}Declined{% elif r.status == 'withdrawn' %}Withdrawn{% else %}Decision{% endif %}</div>
+      <div class="small">{% if r.status == 'pending' %}Awaiting alumni{% endif %}</div></li>
+  </ul>
+</div></div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card-soft mb-4"><div class="card-pad">
+      <h6 class="mb-3">Message from {{ r.student.display_name }}</h6>
+      <p style="white-space: pre-line;" class="mb-3">{{ r.message }}</p>
+      {% if r.resume %}<a href="{% url 'referrals:resume' r.pk %}" target="_blank" class="btn btn-soft btn-sm"><i class="bi bi-file-earmark-text me-1"></i> View resume</a>{% endif %}
+    </div></div>
+
+    {% if r.alumni_reply %}
+    <div class="card-soft mb-4"><div class="card-pad">
+      <h6 class="mb-3">Reply from {{ r.alumni.display_name }}</h6>
+      <p style="white-space: pre-line;" class="mb-0">{{ r.alumni_reply }}</p>
+    </div></div>
+    {% endif %}
+
+    {% if is_alumni_side and r.status == 'pending' %}
+    <div class="card-soft"><div class="card-pad">
+      <h6 class="mb-3">Your response</h6>
+      <form method="post" action="{% url 'referrals:respond' r.pk %}">{% csrf_token %}
+        <label class="form-label" for="reply">Add a note (optional)</label>
+        <textarea name="reply" id="reply" rows="3" maxlength="1000" class="form-control mb-3" placeholder="e.g. Happy to refer you, please share your updated resume on email. Or: sorry, my team is not hiring now."></textarea>
+        <div class="d-flex gap-2">
+          <button name="decision" value="accept" class="btn btn-success"><i class="bi bi-check-lg me-1"></i> Accept request</button>
+          <button name="decision" value="reject" class="btn btn-outline-danger"><i class="bi bi-x-lg me-1"></i> Decline</button>
+        </div>
+      </form>
+    </div></div>
+    {% endif %}
+
+    {% if not is_alumni_side and r.status == 'pending' %}
+    <form method="post" action="{% url 'referrals:withdraw' r.pk %}" data-confirm="Withdraw this referral request?">{% csrf_token %}
+      <button class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise me-1"></i> Withdraw request</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card-soft mb-3"><div class="card-pad">
+      {% if is_alumni_side %}{% with p=r.student label="Student" %}
+        <h6 class="mb-3">{{ label }}</h6>
+        <div class="d-flex align-items-center gap-3">
+          <span class="avatar avatar-lg" style="width:56px;height:56px;font-size:1.3rem">{{ p.first_name|default:p.username|slice:":1" }}</span>
+          <div><div class="fw-semibold">{{ p.display_name }}</div><div class="text-muted small">{{ p.email }}</div>{% if p.graduation_year %}<div class="text-muted small">Class of {{ p.graduation_year }}</div>{% endif %}</div>
+        </div>
+        {% if p.bio %}<p class="small text-muted mt-3 mb-0">{{ p.bio }}</p>{% endif %}
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          {% if p.linkedin_url %}<a href="{{ p.linkedin_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-sm"><i class="bi bi-linkedin me-1"></i> LinkedIn</a>{% endif %}
+          {% if p.github_url %}<a href="{{ p.github_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-sm"><i class="bi bi-github me-1"></i> GitHub</a>{% endif %}
+          {% if p.leetcode_url %}<a href="{{ p.leetcode_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-sm"><i class="bi bi-code-slash me-1"></i> LeetCode</a>{% endif %}
+        </div>
+      {% endwith %}{% else %}{% with p=r.alumni label="Alumnus" %}
+        <h6 class="mb-3">{{ label }}</h6>
+        <div class="d-flex align-items-center gap-3">
+          <span class="avatar avatar-lg" style="width:56px;height:56px;font-size:1.3rem">{{ p.first_name|default:p.username|slice:":1" }}</span>
+          <div><div class="fw-semibold">{{ p.display_name }}</div><div class="text-muted small">{{ p.designation }}{% if p.designation and p.company_name %} at {% endif %}{{ p.company_name }}</div></div>
+        </div>
+        {% if p.linkedin_url %}<a href="{{ p.linkedin_url }}" target="_blank" rel="noopener" class="btn btn-soft btn-sm mt-3"><i class="bi bi-linkedin me-1"></i> LinkedIn</a>{% endif %}
+      {% endwith %}{% endif %}
+    </div></div>
+
+    <div class="card-soft"><div class="card-pad">
+      <h6 class="mb-3">Application status</h6>
+      {% if app_status %}
+        {% include "includes/status_pill.html" with status=app_status.0 label=app_status.1 %}
+        {% if not is_alumni_side and r.external_application_id %}<div class="mt-3"><a href="{% url 'tracker:edit' r.external_application_id %}" class="small fw-semibold">Update in My Job Applications</a></div>{% endif %}
+      {% else %}
+        <p class="text-muted small mb-0">The student has not linked an application to this request yet.</p>
+      {% endif %}
+    </div></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Resume Library{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Resume Library</h1><p>Keep every version of your resume and see which one is used where.</p></div>
+  <a href="{% url 'planner:resume_create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-1"></i> Add resume version</a>
+</div>
+{% include "planner/_tabs.html" %}
+
+{% if resumes %}
+<div class="row g-3 mb-4">
+  {% for r in resumes %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card-soft resume-card {% if r.is_default %}is-default{% endif %}">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <h6 class="mb-0">{{ r.title }}</h6>
+          <div class="text-muted small">{% if r.version %}{{ r.version }} &middot; {% endif %}added {{ r.created_at|date:"d M Y" }}</div>
+        </div>
+        {% if r.is_default %}<span class="tag tag-brand mb-0"><i class="bi bi-star-fill me-1"></i>Default</span>{% endif %}
+      </div>
+      {% if r.target_role %}<div class="mb-2"><span class="tag"><i class="bi bi-bullseye me-1"></i>{{ r.target_role }}</span></div>{% endif %}
+      {% if r.notes %}<p class="small text-muted mb-3">{{ r.notes|truncatechars:100 }}</p>{% endif %}
+      <div class="d-flex card-soft py-2 mb-3">
+        <div class="mini-stat"><div class="n">{{ r.app_count }}</div><div class="l">Used</div></div>
+        <div class="mini-stat"><div class="n">{{ r.interview_count }}</div><div class="l">Interview</div></div>
+        <div class="mini-stat"><div class="n text-success">{{ r.selected_count }}</div><div class="l">Selected</div></div>
+        <div class="mini-stat"><div class="n text-danger">{{ r.rejected_count }}</div><div class="l">Rejected</div></div>
+      </div>
+      <div class="mt-auto d-flex flex-wrap gap-2">
+        <a href="{% url 'planner:resume_file' r.pk %}" target="_blank" class="btn btn-soft btn-sm"><i class="bi bi-file-earmark-text me-1"></i> View</a>
+        <a href="{% url 'planner:resume_edit' r.pk %}" class="btn btn-soft btn-sm"><i class="bi bi-pencil me-1"></i> Edit</a>
+        {% if not r.is_default %}
+        <form method="post" action="{% url 'planner:resume_default' r.pk %}">{% csrf_token %}<button class="btn btn-soft btn-sm"><i class="bi bi-star me-1"></i> Make default</button></form>
+        {% endif %}
+        <form method="post" action="{% url 'planner:resume_delete' r.pk %}" data-confirm="Remove this resume from your library? Past applications keep their saved copy." class="ms-auto">{% csrf_token %}<button class="btn btn-soft btn-icon text-danger" title="Delete"><i class="bi bi-trash"></i></button></form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card-soft mb-4">{% include "includes/empty_state.html" with icon="bi-file-earmark-person" title="Your resume library is empty" text="Upload your first resume version. You can then pick it when you log applications and see which one performs best." cta_url="/plan/resumes/add/" cta_label="Add resume version" %}</div>
+{% endif %}
+
+<div class="card-soft overflow-hidden">
+  <div class="card-head"><h5>Resume usage log</h5><span class="small text-muted">Which resume went to which company</span></div>
+  <div class="table-responsive"><table class="table table-modern align-middle">
+    <thead><tr><th>Company / Role</th><th>Applied</th><th>Resume used</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for app in usage %}
+      <tr>
+        <td><div class="fw-semibold">{{ app.company_name }}</div><div class="text-muted small">{{ app.job_title }}</div></td>
+        <td class="text-nowrap">{{ app.applied_date|date:"d M Y" }}</td>
+        <td>{% if app.resume_version %}<span class="tag tag-brand mb-0">{{ app.resume_version.label }}</span>{% elif app.resume %}<a href="{% url 'tracker:resume' app.pk %}" target="_blank" class="small">Uploaded file</a>{% else %}<span class="text-muted">Not recorded</span>{% endif %}</td>
+        <td>{% include "includes/status_pill.html" with status=app.status label=app.get_status_display %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">{% include "includes/empty_state.html" with icon="bi-journal-text" title="No applications logged yet" text="Pick a resume version whenever you log an application." cta_url="/applications/add/" cta_label="Log an application" %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

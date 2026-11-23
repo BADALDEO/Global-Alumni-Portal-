@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sign up{% endblock %}
+{% block public %}
+{% include "includes/public_nav.html" %}
+<div class="auth-wrap">
+  <div class="auth-side">
+    <h2 class="mb-3">Join the network that gets you hired</h2>
+    <p class="mb-4 opacity-75">Students, alumni and companies, all connected.</p>
+    <ul class="list-unstyled mb-0">
+      <li><i class="bi bi-check2"></i><span>Browse jobs and internships from alumni and companies</span></li>
+      <li><i class="bi bi-check2"></i><span>Request referrals directly from alumni</span></li>
+      <li><i class="bi bi-check2"></i><span>Keep a private record of every application you make</span></li>
+    </ul>
+  </div>
+  <div class="auth-form">
+    <div class="card-soft auth-card" style="max-width:600px">
+      <h3 class="mb-1">Create your account</h3>
+      <p class="text-muted mb-4">It's free and takes under a minute.</p>
+      {% include "includes/google_button.html" %}
+      <form method="post" id="signupForm">{% csrf_token %}
+        {% if form.non_field_errors %}<div class="alert alert-danger">{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
+
+        <label class="form-label">I am a</label>
+        <div class="row g-2 mb-1">
+          {% for value, label in form.role.field.choices %}
+          <div class="col-4">
+            <label class="role-card">
+              <input type="radio" name="role" value="{{ value }}" {% if form.role.value == value %}checked{% endif %}>
+              <div class="box">
+                <i class="bi {% if value == 'student' %}bi-mortarboard{% elif value == 'alumni' %}bi-person-workspace{% else %}bi-building{% endif %}"></i>
+                <div class="t">{{ label }}</div>
+                <div class="d">{% if value == 'student' %}Find jobs &amp; referrals{% elif value == 'alumni' %}Post jobs &amp; refer{% else %}Hire talent{% endif %}</div>
+              </div>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+        {% for e in form.role.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">{% include "includes/field.html" with field=form.first_name %}</div>
+          <div class="col-md-6">{% include "includes/field.html" with field=form.last_name %}</div>
+          <div class="col-md-6">{% include "includes/field.html" with field=form.username %}</div>
+          <div class="col-md-6">{% include "includes/field.html" with field=form.email %}</div>
+        </div>
+
+        <div class="row g-3" id="proFields">
+          <div class="col-md-7">{% include "includes/field.html" with field=form.company_name %}</div>
+          <div class="col-md-5">{% include "includes/field.html" with field=form.graduation_year %}</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">{% include "includes/field.html" with field=form.password1 %}</div>
+          <div class="col-md-6">{% include "includes/field.html" with field=form.password2 %}</div>
+        </div>
+
+        <button class="btn btn-gradient btn-lg w-100 mt-1">Create account</button>
+      </form>
+      <p class="text-center text-muted mt-4 mb-0">Already registered? <a href="{% url 'login' %}" class="fw-semibold">Log in</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/role_fields.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Networking{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Professional Networking</h1><p>Track the people you reach out to. Warm connections turn into referrals.</p></div>
+  <div class="d-flex flex-wrap gap-2">
+    {% if user.is_student %}<a href="{% url 'referrals:directory' %}" class="btn btn-outline-primary"><i class="bi bi-person-lines-fill me-1"></i> Find alumni</a>{% endif %}
+    <a href="{% url 'planner:networking_create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-1"></i> Log activity</a>
+  </div>
+</div>
+{% include "planner/_tabs.html" %}
+
+{% if progress.net_enabled %}
+<div class="card-soft mb-4"><div class="card-pad d-flex flex-wrap align-items-center gap-3">
+  <div class="flex-grow-1" style="min-width:220px">
+    <div class="d-flex justify-content-between mb-1"><strong>Today's networking target</strong><span class="fw-bold">{{ progress.network }} / {{ progress.net_target }}</span></div>
+    <div class="progress progress-thin"><div class="progress-bar" style="width: {{ progress.net_pct }}%"></div></div>
+  </div>
+  <span class="small text-muted">{% if progress.net_done %}Target reached today.{% else %}{{ progress.net_remaining }} to go.{% endif %}</span>
+</div></div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  {% for c in cards %}
+  <div class="col-sm-6 col-xl-3">
+    <div class="card-soft platform-tile">
+      <div class="d-flex align-items-center gap-3 mb-2"><span class="p-icon"><i class="bi {{ c.icon }}"></i></span><div><div class="fw-bold">{{ c.label }}</div><div class="small text-muted">{{ c.total }} total &middot; {{ c.week }} this week</div></div></div>
+      <p class="small text-muted mb-3">{{ c.hint }}</p>
+      <a href="{% url 'planner:networking_create' %}?platform={{ c.key }}" class="btn btn-soft btn-sm mt-auto"><i class="bi bi-plus-lg me-1"></i> Log on {{ c.label }}</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if has_any %}
+<form method="get" class="card-soft filter-bar">
+  <div class="row g-2">
+    <div class="col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search name, role or notes..."></div>
+    <div class="col-md-3"><select name="platform" class="form-select"><option value="">All platforms</option>{% for v, l in platform_choices %}<option value="{{ v }}" {% if v == platform %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><select name="activity" class="form-select"><option value="">All activity</option>{% for v, l in activity_choices %}<option value="{{ v }}" {% if v == activity %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="col-md-2 d-grid"><button class="btn btn-soft"><i class="bi bi-funnel me-1"></i> Filter</button></div>
+  </div>
+</form>
+
+<div class="card-soft overflow-hidden"><div class="table-responsive"><table class="table table-modern align-middle">
+  <thead><tr><th>Contact</th><th>Platform</th><th>Activity</th><th>Date</th><th>Notes</th><th class="text-end">Actions</th></tr></thead>
+  <tbody>
+  {% for n in page_obj %}
+    <tr>
+      <td><div class="d-flex align-items-center gap-3"><span class="avatar avatar-sm">{{ n.contact_name|slice:":1" }}</span><div>
+        <div class="fw-semibold">{{ n.contact_name }}{% if n.is_alumni %} <span class="tag tag-brand mb-0 ms-1">Alumni</span>{% endif %}{% if n.profile_url %} <a href="{{ n.profile_url }}" target="_blank" rel="noopener" class="mini-link ms-1" title="Open profile"><i class="bi bi-box-arrow-up-right"></i></a>{% endif %}</div>
+        {% if n.contact_role %}<div class="text-muted small">{{ n.contact_role }}</div>{% endif %}</div></div></td>
+      <td><span class="tag mb-0">{{ n.get_platform_display }}</span></td>
+      <td>{{ n.get_activity_display }}</td>
+      <td class="text-nowrap">{{ n.date|date:"d M Y" }}</td>
+      <td class="small" style="max-width:240px">{{ n.notes|default:"-"|truncatechars:70 }}</td>
+      <td class="text-end text-nowrap">
+        <a href="{% url 'planner:networking_edit' n.pk %}" class="btn btn-soft btn-icon" title="Edit"><i class="bi bi-pencil"></i></a>
+        <form method="post" action="{% url 'planner:networking_delete' n.pk %}" class="d-inline" data-confirm="Delete this activity?">{% csrf_token %}<button class="btn btn-soft btn-icon text-danger" title="Delete"><i class="bi bi-trash"></i></button></form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">{% include "includes/empty_state.html" with icon="bi-search" title="No matching activity" text="Try changing the filters." %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+{% include "includes/pagination.html" %}
+{% else %}
+<div class="card-soft">{% include "includes/empty_state.html" with icon="bi-diagram-3" title="Start building your network" text="Log connection requests, messages and meetings with alumni and recruiters, and see your progress here." cta_url="/plan/networking/add/" cta_label="Log your first activity" %}</div>
+{% endif %}
+{% endblock %}
